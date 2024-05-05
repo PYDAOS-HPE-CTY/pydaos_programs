@@ -10,20 +10,19 @@ def convert_to_bytes(size_str, unit):
         return float(size_str) * 1024 * 1024 * 1024
     elif unit == 'mb':
         return float(size_str) * 1024 * 1024
+    elif unit == 'kb':
+        return float(size_str) * 1024
     else:
-        return float(size_str)  # Assuming bytes by default
+        return float(size_str) 
 
 def get_pool_with_max_targets():
-    # Run the command and get the output as bytes
+    # Listing all pools
     output_bytes = subprocess.check_output(["dmg", "pool", "list"])
-
-    # Decode the bytes to a string
     output_string = output_bytes.decode("utf-8")
 
     # Split the output into lines and skip the header
     lines = output_string.strip().split("\n")[2:]
 
-    # Initialize variables to keep track of the pool with the highest number of targets
     max_targets = 0
     pool_with_max_targets = ""
     max_free_space_bytes = 0
@@ -55,6 +54,7 @@ def get_pool_with_max_targets():
                     pool_with_max_targets = pool_name
                     max_free_space_bytes = free_space_bytes
 
+                # If number of targets is equal to the current maximum, check the free space
                 elif num_targets == max_targets:
                     if free_space_bytes > max_free_space_bytes:
                         max_free_space_bytes = free_space_bytes
@@ -71,14 +71,9 @@ def list_containers_in_pool_with_max_targets():
     
     # Run the command to list containers in the pool with the maximum number of targets
     output_bytes = subprocess.check_output(["daos", "cont", "list", pool_name])
-
-    # Decode the bytes to a string
     output_string = output_bytes.decode("utf-8")
-
-    # Split the output into lines and skip the header
     lines = output_string.strip().split("\n")[2:]
 
-    # Initialize a list to store container names
     containers_in_pool = []
 
     # Iterate over each line and extract container name
