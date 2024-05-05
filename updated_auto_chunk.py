@@ -2,12 +2,13 @@ import os
 import json
 import time
 from pydaos import DCont, DDict
-import pool_test_api as pool_test
+import pool_test
 import re
 
-
+# Metadata file for storing pool and container information
 POOL_METADATA_FILE="pool_metadata.json"
-# Create a DAOS container
+
+# Function to get DAOS container from metadata based on key
 def get_daos_container():
   pool, containers = pool_test.list_containers_in_pool_with_max_targets()
   containers.sort()
@@ -45,8 +46,9 @@ os.makedirs(upload_dir, exist_ok=True)
 # Metadata file path
 metadata_file = "metadata.json"
 
-# Size of chunks in MB
+#Synchronize the metadata file
 pool_test.synchronize_metadata()
+
 # Function to print help
 def print_help():
     print("?\t- Print this help")
@@ -58,8 +60,7 @@ def print_help():
 
 # Function to read a key with time measurement
 def read_key():
-
-   
+  
     try:
         key = input("Enter key to read: ")
         
@@ -116,6 +117,7 @@ def get_pool_and_container_from_metadata(key):
         print(f"Error retrieving metadata: {e}")
     return None, None
 
+# Function to save retrieved value as a file
 def save_value_as_file(key, value):
     filename = os.path.join(upload_dir, f"{key}.dat")
     with open(filename, "wb") as f:
@@ -174,13 +176,6 @@ def upload_file():
                 bput_end_time = time.time()
                 upload_time = bput_end_time - bput_start_time
                 
-                # Store metadata
-                metadata = {
-                    "key": key,
-                    "pool": pool,
-                    "container": cont
-                }
-                #store_metadata(metadata)
                 pool_test.synchronize_metadata()
 
                 print(f"File uploaded in Pool:{pool}, Container:{cont}, {chunk_count} chunks successfully. Time taken: {upload_time} seconds")
@@ -191,17 +186,7 @@ def upload_file():
     except Exception as e:
         print(f"Error accessing container: {e}")
 
-# Function to store metadata
-def store_metadata(metadata):
-    if not os.path.exists(metadata_file):
-        with open(metadata_file, "w") as f:
-            json.dump([], f)
-    with open(metadata_file, "r+") as f:
-        data = json.load(f)
-        data.append(metadata)
-        f.seek(0)
-        json.dump(data, f, indent=4)
-
+# Function to delete a key from the DAOS container
 def delete_key(key):
     try:
         # Get the pool and container from metadata
